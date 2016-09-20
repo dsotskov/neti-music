@@ -1,0 +1,85 @@
+<?php
+if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED!==true)die();
+if (!CModule::IncludeModule('netihlmusic'))
+{
+	ShowError('Не установлен модуль netihlmusic');
+	return 0;
+}
+
+$arParams['NAME_TEMPLATE'] = empty($arParams['NAME_TEMPLATE']) ? CSite::GetNameFormat(false) : str_replace(array("#NOBR#","#/NOBR#"), array("",""), $arParams["NAME_TEMPLATE"]);
+
+$arComponentVariables = array('author_new', 'author_edit', 'music_new', 'music_edit');
+$arDefaultUrlTemplates404 = array(
+	'index' => 'index.php',
+	'author_new' => 'authornew/',
+	'author_edit' => 'authornew/#author_id#/',
+	'music_new' => 'musicnew/',
+	'music_edit' => 'musicedit/#music_id#/',
+);
+$arDefaultVariableAliases404 = array();
+
+if ($arParams['SEF_MODE'] == 'Y')
+{
+	$arVariables = array();
+
+	$arUrlTemplates = CComponentEngine::MakeComponentUrlTemplates($arDefaultUrlTemplates404, $arParams['SEF_URL_TEMPLATES']);
+	$componentPage = CComponentEngine::ParseComponentPath($arParams['SEF_FOLDER'], $arUrlTemplates, $arVariables);	
+	
+	$arResult['NEW_AUTHOR_URI'] = $arUrlTemplates['author_new'];
+	$arResult['NEW_MUSIC_URI'] = $arUrlTemplates['music_new'];
+}
+else
+{
+	$arVariableAliases = CComponentEngine::MakeComponentVariableAliases($arDefaultVariableAliases404, $arParams['VARIABLE_ALIASES']);
+	CComponentEngine::InitComponentVariables(false, $arComponentVariables, $arVariableAliases, $arVariables);
+	
+	if (isset($arVariables['author_new']))
+		$componentPage = 'author_new';
+	elseif (isset($arVariables['music_new']))
+		$componentPage = 'music_new';
+	elseif (isset($arVariables['author_edit']) && !empty($arVariables['author_edit']))
+		$componentPage = 'author_edit';
+	elseif (isset($arVariables['music_edit']) && !empty($arVariables['music_edit']))
+		$componentPage = 'music_edit';
+	else
+		$componentPage = 'index';
+
+	$arResult['NEW_AUTHOR_URI'] = '?'.$arVariableAliases['author_new'];
+	$arResult['NEW_MUSIC_URI'] = '?'.$arVariableAliases['music_new'];
+}
+
+$arResult = array_merge(
+	array(
+		'DURATION_TYPE' => $arParams['DURATION_TYPE'],
+		'NAME_TEMPLATE' => $arParams['NAME_TEMPLATE'],
+		'SEF_MODE' => $arParams['SEF_MODE'],
+		'SEF_FOLDER' => $arParams['SEF_FOLDER'],
+		'USE_REVIEW' => $arParams['USE_REVIEW'],
+		'VARIABLES' => $arVariables,
+		'ALIASES' => $arParams['SEF_MODE'] == 'Y'? array(): $arVariableAliases,
+		'SET_TITLE' => $arParams['SET_TITLE'],
+	),
+	$arResult
+);
+
+if ($componentPage == 'index')
+{
+	Neti_MusicTable::add()
+	$result = Neti_MusicTable::getList(array(
+		'select' => array('ID', 'UF_NAME', 'UF_AUTHOR_ID', 'UF_DURATION', 'AUTHORNAME' => 'AUTHOR.UF_NAME'),
+		));
+	$listdata = $result->FetchAll();
+	$arResult['rows'] = $listdata;
+}
+elseif ($componentPage == 'author_edit' || $componentPage == 'author_new')
+{
+	$componentPage = 'author_form';
+}
+elseif ($componentPage == 'music_edit' || $componentPage == 'music_new')
+{
+	$componentPage = 'music_form';
+}
+
+$this->IncludeComponentTemplate($componentPage);
+
+?>
