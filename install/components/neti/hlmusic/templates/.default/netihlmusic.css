@@ -1,0 +1,29 @@
+.netihlmusic-block
+{
+	border: 1px solid #E0E0E0;
+	border-radius: 4px;
+	padding: 5px;
+	margin-bottom: 10px;
+	position: relative;
+	box-shadow: 1px 1px 1px rgba(0, 0, 0, 0.706);
+}
+.netihlmusic-block .edit-block
+{
+	position: absolute;
+	bottom: 0px;
+	right: 0px;
+	padding: 0px 7px 2px 0px;
+}
+.netihlmusic-block .edit-block span,
+.netihlmusic-operation-col a
+{
+	margin: 0px 3px;
+}
+.netihlmusic-block .music
+{
+	font-weight: bold;
+}
+.netihlmusic-operation-col
+{
+	width: 60px !important;
+}
